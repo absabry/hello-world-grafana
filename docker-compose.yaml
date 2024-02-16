@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: timeseriesdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - mysql
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+  # myapp:
+  #   build: .
+  #   volumes:
+  #     - .:/usr/src/app
+  #   ports:
+  #     - "80:80"
+  #   cap_add:
+  #     - NET_ADMIN # This might be necessary for packet capture capabilities
+  #   network_mode: "host" # Use host networking for capturing on the host network, if necessary
+
+volumes:
+  mysql_data:
+  grafana_data:

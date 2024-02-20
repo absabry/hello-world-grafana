@@ -22,4 +22,4 @@ EXPOSE 80
 ENV NAME World
 
 # Run app.py when the container launches
-CMD ["python", "pyshark_to_sql.py"]
+CMD ["python", "src/pyshark_to_sql.py"]

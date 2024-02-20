@@ -1,6 +1,8 @@
 import pyshark
 import mysql.connector
 from datetime import datetime
+import pandas as pd
+from pathlib import Path
 
 # Function to connect to the MySQL database
 def connect_to_db():
@@ -11,29 +13,15 @@ def connect_to_db():
         database="timeseriesdb"
     )
 
-def insert_packet_data(src_ip, dest_ip, length, protocol):
-    db = connect_to_db()
-    cursor = db.cursor()
-    query = "INSERT INTO packets (timestamp, src_ip, dest_ip, bytes_transferred, protocol) VALUES (%s, %s, %s, %s, %s)"
-    cursor.execute(query, (datetime.now(), src_ip, dest_ip, length, protocol))
-    db.commit()
-    cursor.close()
-    db.close()
+def pcap_to_parquet(input_pcap):
+    cap = pyshark.FileCapture(input_pcap, keep_packets=False)
+    data = []
+    for packet in cap:
+        if hasattr(packet, "ip") and hasattr(packet.ip, "src") and hasattr(packet.ip, "dst"):
+            print(packet)
 
-    print(f"Inserted {src_ip} packet data into the database")
-
-def capture_packets(interface='your_network_interface'):
-    capture = pyshark.LiveCapture(interface=interface)
-
-    for packet in capture.sniff_continuously():
-        try:
-            src_ip = packet.ip.src
-            dest_ip = packet.ip.dst
-            length = packet.length
-            protocol = packet.highest_layer
-            insert_packet_data(src_ip, dest_ip, length, protocol)
-        except AttributeError:
-            continue
+    # df = pd.DataFrame(data)
+    # print(df)
 
 def create_table():
     db = connect_to_db()
@@ -48,4 +36,12 @@ def create_table():
 if __name__ == '__main__':
     create_table()
     print("table created successfully!")
-    capture_packets(interface='en0')
+
+    root_folder = Path(".") / "captures"
+    for pcap_file in root_folder.glob("*.pcap"):
+        pcap_to_parquet(pcap_file)
+
+    # get data in a test.pcap file
+    # continoulsy read new files that is coming here
+    # push them to the dataset
+

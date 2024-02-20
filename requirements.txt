@@ -1,3 +1,5 @@
 mysql-connector-python==8.3.0
 Faker
 pyshark
+pandas
+tqdm
